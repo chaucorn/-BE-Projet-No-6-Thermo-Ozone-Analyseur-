@@ -31,13 +31,11 @@ cycle de rafraîchissement pour mettre à jour les graphiques.
 ## Version 2 ver2.0.0 — Architecture via Queue 
 
 Le backend pousse les trames brutes dans une `Queue`
-thread-safe. L'interface graphique vide la file toutes les 200ms via
-`root.after()` sur le thread principal.
+thread-safe. 
 
 **Améliorations par rapport à v1.0.0 :**
 - Thread-safe par conception — aucun risque de *race condition*
 - Les performances ne se dégradent pas dans le temps
-- Arrêt propre via `stop_event`
 - Le fichier CSV n'est écrit qu'une seule fois par cycle par le thread principal
 
 ---
@@ -63,12 +61,12 @@ thread-safe. L'interface graphique vide la file toutes les 200ms via
 
 ---
 ## Structure du projet
-Ver0
+v1.0.0
 ```
 ├──App.py                      # Interface graphique et main
 ├── fnct_finales_valerio.py    # Port serie connexion, recuperation et traitment de donnees
 ```
-Ver1
+v2.0.0
 ```
 ozone_analyzer/
 ├── main.py                      # Point d'entrée
