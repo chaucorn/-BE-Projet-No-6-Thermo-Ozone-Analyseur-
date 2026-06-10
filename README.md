@@ -12,7 +12,7 @@ python3 App.py
 
 ```
 
-Vv2.0.0
+v2.0.0
 ```
 python3 main.py
 
