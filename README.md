@@ -19,7 +19,7 @@ python3 main.py
 ```
 ---
 
-## Version 1 v1.0.0 — Architecture via fichier CSV
+## Version v1.0.0 — Architecture via fichier CSV
 
 Le backend écrit les données directement dans un fichier CSV sur le disque.
 L'interface graphique relit et recharge l'intégralité du fichier CSV à chaque
@@ -28,7 +28,7 @@ cycle de rafraîchissement pour mettre à jour les graphiques.
 
 ---
 
-## Version 2 ver2.0.0 — Architecture via Queue 
+## Version ver2.0.0 — Architecture via Queue 
 
 Le backend pousse les trames brutes dans une `Queue`
 thread-safe. 
@@ -76,7 +76,7 @@ ozone_analyzer/
 │   ├── serial_handler.py        # Communication série + thread d'acquisition
 │   └── data_processor.py        # Parser des trames brutes
 ├── frontend/
-│   ├── LoginScreen.py           # écran de démarrage 
+│   ├── login.py                 # écran de démarrage 
 │   ├── gui.py                   # Interface graphique principale (GraphApp)
 │   ├── plots.py                 # Rendu des graphiques matplotlib
 │   └── components.py            # Composants réutilisables (Tooltip)
