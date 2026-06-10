@@ -8,13 +8,13 @@ Interface graphique en temps réel pour la communication série avec un analyseu
 ## Lancer l'application
 Ver0
 ```bash
-App.py
+python3 App.py
 
 ```
 
 Ver1
 ```
-main.py
+python3 main.py
 
 ```
 ---
