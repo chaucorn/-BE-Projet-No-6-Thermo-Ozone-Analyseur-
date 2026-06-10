@@ -204,24 +204,4 @@ def recuperation_donnees(ser : int, csv : str, delais_relevé : int, id : int):
 
 
 
-def main():
-    csv = creer_csv()
-    rec1 = "09:53 03-02-26 flags 0C105004 o3 0.000 hio3 0.000 cellai 0 cellbi 7 bncht 20.2 lmpt 46.5 o3lt 63.6 flowa 0.754 flowb 0.721 press 747.0"
-    rec2 = "14:14 05-26-26 flags 0C100000 o3 7.469 hio3 0.000 cellai 115685 cellbi 117893 bncht 31.6 lmpt 52.8 o3lt 67.3 flowa 0.751 flowb 0.717 pres 751.8"
-    print(csv)
-    ajouter_donnees(csv,rec1)
-    ajouter_donnees(csv,rec2)
-
-
-# def main():
-#     ser = connexion("/dev/ttyUSB0",9600,49)
-#     print("fin connexion")
-#     csv = creer_csv()
-#     print("debut rec")
-#     recuperation_donnees(ser,csv,5,49)
-
-# # def main():
-    
-# #     print(donnee_valide("bonjours"))
-# #     print(donnee_valide("14:14 05-26-26 flags 0C100000 o3 7.469 hio3 0.000 cellai 115685 cellbi 117893 bncht 31.6 lmpt 52.8 o3lt 67.3 flowa 0.751 flowb 0.717 pres 751.8"))
 
