@@ -45,7 +45,6 @@ thread-safe.
 - Graphiques en temps réel : Ozone, Cellules A/B, Pression, Débit A/B, Températures, O3 Lamp
 - Sauvegarde automatique dans `record/` avec nom de fichier horodaté
 - Export CSV manuel via le bouton Sauvegarder
-- Mode simulation pour tester sans matériel
 - Boutons Démarrer/Arrêter l'acquisition
 
 ---
