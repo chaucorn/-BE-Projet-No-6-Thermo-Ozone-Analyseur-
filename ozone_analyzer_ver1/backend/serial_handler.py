@@ -1,0 +1,173 @@
+"""Serial communication with the ozone analyzer.
+
+Runs the acquisition loop on a background thread and pushes raw response
+strings into a thread-safe Queue. The GUI drains the queue on its own
+event loop (see frontend/gui.py).
+"""
+## CHAU
+import re
+import time
+import serial
+from queue import Queue, Full
+from threading import Event, Thread
+
+
+class SerialHandler:
+    def __init__(self, data_queue: Queue, debug: bool = True):
+        self.data_queue = data_queue
+        self.ser: serial.Serial | None = None
+        self.stop_event = Event()
+        self.thread: Thread | None = None       
+        self.debug = debug
+        self._frame_count = 0        
+    # ---- Logging --------------------------------------------------------
+    def _log(self, phase: str, msg: str) -> None:
+        if self.debug:
+            ts = time.strftime("%H:%M:%S")
+            print(f"[{ts}] [{phase:<5}] {msg}", flush=True)
+
+    # ---- Connection -----------------------------------------------------
+    def connect(self, port: str, baudrate: int, device_id: int) -> bool:
+        try:
+            self._log("CONN", f"Opening {port} @ {baudrate} baud, id={device_id}")
+            #port = "/dev/ttyUSB0"
+            self.ser = serial.Serial(port, baudrate=baudrate, timeout=1)
+            if not self._set_remote_mode(device_id):
+                
+                self._log("CONN", "⚠️  Remote mode not confirmed — continuing "
+                                  "(lrec works in local mode).")
+            return True
+        except Exception as e:
+            self._log("CONN", f"❌ Connection error: {e}")
+            return False
+
+    def _set_remote_mode(self, device_id: int) -> bool:
+        self._send_command("set mode remote", device_id)
+        for _ in range(12):
+            if self.stop_event.is_set(): # if user close the window
+                return False
+            if "set mode remote ok" in self.read_response():
+                self._log("CONN", "✅ Remote mode activated")
+                return True
+            if self.stop_event.wait(timeout=0.3): 
+                return False
+        self._log("CONN", "⚠️  Remote mode confirmation never received.")
+        return False          # ← exhausted all 12 attempts
+
+    # ---- Low-level I/O --------------------------------------------------
+    def _send_command(self, cmd: str, device_id: int) -> None:
+        prefix = bytes([device_id]) if device_id != 0 else b""
+        payload = prefix + cmd.encode('utf-8') + b"\r\n"
+        self.ser.write(payload)
+        self._log("TX", f"{cmd!r}  ->  bytes={payload!r}")
+
+    def read_response(self) -> str:
+        """Poll the serial port until a non-empty line arrives or we are stopped.
+
+        Uses stop_event.wait() instead of time.sleep() so shutdown is prompt.
+        """
+        reponse = ""
+        for i in range(80): # 8 seconds
+            #print(f"RX : Read attempt {i}:")
+            if self.stop_event.wait(timeout=0.1):
+                break
+            try:
+                raw = self.ser.readline()
+                
+            except Exception as e:
+                self._log("RX", f"❌ read error: {e}")
+            line = raw.decode('utf-8', errors="replace").strip()
+            if line: # string is true if non empty
+                self._log("RX", f"{line!r}")
+                return line
+        return reponse
+
+    # ---- Acquisition loop ----------------------------------------------
+    def start_acquisition(
+        self, port: str, baudrate: int, id_analyseur: int, interval: int
+    ) -> bool:
+        device_id = id_analyseur + 128
+        
+        
+        self.stop_event.clear()          # ← reset so a restarted run doesn't exit instantly
+
+        if not self.connect(port, baudrate, device_id):
+            return False
+
+        self.stop_event.clear()
+        self.thread = Thread(
+            target=self._acquisition_loop,
+            args=(device_id, interval),
+            daemon=True,
+        )
+        self.thread.start()
+        self._log("CONN", f"Acquisition thread started (interval={interval}s)")
+        return True
+
+    def _acquisition_loop(self, device_id, interval: int) -> None:
+        while not self.stop_event.is_set():
+            try:
+                self.ser.reset_input_buffer()
+                self._send_command("lrec 1 1", device_id)
+                print("send lrec 1 1s")
+                raw_data = self.read_response()
+
+                for _ in range(6):
+                    if self.stop_event.is_set():
+                        return
+                    if self._is_data_frame(raw_data):
+                        break
+                    raw_data = self.read_response()
+
+                if self._is_data_frame(raw_data):
+                    self._enqueue(raw_data)
+                else:
+                    self._log("FRAME", f"⚠️  no valid frame this cycle "
+                                       f"(last line: {raw_data!r})")
+            except Exception as e:
+                self._log("FRAME", f"❌ acquisition error: {e}")
+
+            # Interruptible sleep
+            if self.stop_event.wait(timeout=interval):
+                break
+    
+    def _is_data_frame(self, line: str) -> bool:
+        # [FIX A3] THE key fix. The real data line starts with the TIME, not
+        #          'lrec 1 1', so the old ^lrec 1 1 regex matched NOTHING (or
+        #          only the bare echo) and dropped every record. Identify the
+        #          frame by its CONTENT instead — this also rejects the echo,
+        #          which has none of these labels.
+        parts = line.split()
+        required = {"flags", "o3",  "hio3", "cellai", "cellbi", "bncht", "lmpt", "o3lt", 
+                    "flowa", "flowb","pres" }
+        return required.issubset(parts) and len(parts) >= 15
+    def _enqueue(self, raw_data: str) -> None:
+        """Put with drop-oldest policy so the producer never blocks."""
+        try:
+            self.data_queue.put_nowait(raw_data)
+        except Full:
+            try:
+                self.data_queue.get_nowait()
+            except Exception:
+                pass
+            try:
+                self.data_queue.put_nowait(raw_data)
+            except Full:
+                pass
+
+    # ---- Shutdown -------------------------------------------------------
+    def stop(self) -> None:
+        self._log("CONN", "Stopping acquisition...")
+        self.stop_event.set()
+        if self.thread is not None:
+            self.thread.join(timeout=2)
+            self.thread = None
+            
+        if self.ser is not None and self.ser.is_open:
+            try:
+                self.ser.close()
+            except Exception:
+                pass
+        self._log("CONN", f"Stopped. Total frames enqueued: {self._frame_count}")
+        
+
