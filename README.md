@@ -6,13 +6,13 @@ Interface graphique en temps réel pour la communication série avec un analyseu
 
 
 ## Lancer l'application
-Ver0
+v1.0.0
 ```bash
 python3 App.py
 
 ```
 
-Ver1
+Vv2.0.0
 ```
 python3 main.py
 
