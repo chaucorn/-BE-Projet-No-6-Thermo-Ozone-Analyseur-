@@ -92,7 +92,7 @@ Gilles ATHIER — Ingénieur de recherche, LAERO (CNRS), Toulouse
 ---
 ## Etudiants
 
-Valerio ANGIONE
-Lenny SABINE
-Vu Bao Chau DANG
-Elijah PEYRAT 
+Valerio ANGIONE  
+Lenny SABINE  
+Vu Bao Chau DANG  
+Elijah PEYRAT  
