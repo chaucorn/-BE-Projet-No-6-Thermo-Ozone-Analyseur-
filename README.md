@@ -6,12 +6,17 @@ Interface graphique en temps réel pour la communication série avec un analyseu
 
 
 ## Lancer l'application
-
+Ver0
 ```bash
-python main.py               # mode réel (matériel requis)
-python main.py --simulate    # mode simulation — sans matériel
+App.py
+
 ```
 
+Ver1
+```
+main.py
+
+```
 ---
 
 ## Version 1 — Architecture via fichier CSV (prototype)
