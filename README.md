@@ -64,9 +64,10 @@ thread-safe. L'interface graphique vide la file toutes les 200ms via
 ---
 ## Structure du projet
 Ver0
+```
 ├──App.py                      # Interface graphique et main
 ├── fnct_finales_valerio.py    # Port serie connexion, recuperation et traitment de donnees
-
+```
 Ver1
 ```
 ozone_analyzer/
