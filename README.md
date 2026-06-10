@@ -19,26 +19,22 @@ python3 main.py
 ```
 ---
 
-## Version 1 — Architecture via fichier CSV (prototype)
+## Version 1 v1.0.0 — Architecture via fichier CSV
 
 Le backend écrit les données directement dans un fichier CSV sur le disque.
 L'interface graphique relit et recharge l'intégralité du fichier CSV à chaque
 cycle de rafraîchissement pour mettre à jour les graphiques.
 
-**Limitations :**
-- Les performances se dégradent avec le temps à mesure que le fichier CSV grossit
-- Risque de *race condition* lorsque les deux threads accèdent simultanément au fichier
-- Absence de mécanisme d'arrêt propre (boucle `while True` sans interruption)
 
 ---
 
-## Version 2 — Architecture via Queue (version finale)
+## Version 2 ver2.0.0 — Architecture via Queue 
 
-La version actuelle. Le backend pousse les trames brutes dans une `Queue`
+Le backend pousse les trames brutes dans une `Queue`
 thread-safe. L'interface graphique vide la file toutes les 200ms via
 `root.after()` sur le thread principal.
 
-**Améliorations par rapport à la Version 1 :**
+**Améliorations par rapport à v1.0.0 :**
 - Thread-safe par conception — aucun risque de *race condition*
 - Les performances ne se dégradent pas dans le temps
 - Arrêt propre via `stop_event`
@@ -79,9 +75,9 @@ ozone_analyzer/
 ├── requirements.txt
 ├── backend/
 │   ├── serial_handler.py        # Communication série + thread d'acquisition
-│   ├── mock_serial_handler.py   # Mode simulation (sans matériel)
 │   └── data_processor.py        # Parser des trames brutes
 ├── frontend/
+│   ├── LoginScreen.py           # écran de démarrage 
 │   ├── gui.py                   # Interface graphique principale (GraphApp)
 │   ├── plots.py                 # Rendu des graphiques matplotlib
 │   └── components.py            # Composants réutilisables (Tooltip)
